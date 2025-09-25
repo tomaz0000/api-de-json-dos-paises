@@ -1,141 +1,92 @@
 <?php
 
-$pais = isset($_GET["paisbuscado"]) ? trim($_GET["paisbuscado"] ) : '' ;
-$error = null;  //nao tem valor 
-$dados = [] ;
+$pais = isset($_GET["paisbuscado"]) ? trim($_GET["paisbuscado"]) : '';
+$error = null;
+$dados = [];
 
-if( $pais == "" ) {
+if ($pais == "") {
+    $error = "digite um país";
+} else {
+    $url = "https://restcountries.com/v3.1/name/" . rawurlencode($pais);
 
-    $error = "digite um pais";     }
-
-    else {
-        
-        $url = "https://restcountries.com/v3.1/name/{$pais}";
-    
-        $config = [
-            "http"=>             [ 
-                               "method" => "GET",
-
+    $context = stream_context_create([
+        "http" => [
+            "method" => "GET",
             "header" => "Content-Type: application/json"
-            
-            ]];
+        ]
+    ]);
 
-            $context = stream_context_create($config);
-  $result = file_get_contents($url, false, $context);
+    $result = @file_get_contents($url, false, $context);
 
-  if( $result === false ) {$error = "pais invalido";}
+    if ($result === false) {
+        $error = "país inválido";
+    } else {
+        $json = json_decode($result, true);
 
-else {
-    $dados = json_decode($result, true);
-
-if(!isset($dados[0]))   {
-
-    $error = "nenhum pais encontrado";
-
+        if (!isset($json[0])) {
+            $error = "nenhum país encontrado";
+        } else {
+            $dados = $json[0];
+        }
+    }
 }
-else {$dados = $dados[0];            }
-                          }
- 
-}
-
 
 
 ?>
 
-
 <!DOCTYPE html>
 <html lang="pt-br">
-
 <head>
    <meta charset="UTF-8">
    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-   <title>resultado da busca </title>
-<link rel="stylesheet" href="./../CSS/style.css">
+   <title>Resultado da busca</title>
+   <link rel="stylesheet" href="./../CSS/style.css">
 </head>
-
 <body>
-   <div id="paisbuscado">
-      <span id="error"><?= $error  ?? '' ?></span>
+   <!-- Formulário simples para pesquisar país -->
+   <form method="get" action="">
+       <input type="text" name="paisbuscado" placeholder="Digite o país" value="<?= htmlspecialchars($pais) ?>">
+       <button type="submit">Buscar</button>
+   </form>
+
+   <div id="paisbuscado" style="margin-top:20px;">
+      <span id="error"><?= htmlspecialchars($error ?? '') ?></span>
 
       <div>
-         <label>nome </label>
-         <input type="text" value="<?=  isset($dados['name']['common'])  ? $dados['name']['common'] : ''  ?>" disabled>
+         <label>Nome</label>
+         <input type="text" value="<?= isset($dados['name']['common']) ? ($dados['name']['common']) : '' ?>" disabled>
       </div>
 
       <div>
-         <label>população </label>
-         <!-- <input type="text" value="" disabled>   pode ser usado assim-->
-     <input type="text" value="<?=  isset($dados['population']) ?number_format ($dados['population'], 0, ',','.' ): ''  ?>" disabled>
+         <label>População</label>
+         <input type="text" value="<?= isset($dados['population']) ? number_format($dados['population'],0,',','.') : '' ?>" disabled>
       </div>
 
-   <div>
-      <label>Região: </label>
-   <input type="text" value="<?= isset($dados['region']) ? $dados['region'] : '' ?>" disabled>
-</div>
+      <div>
+         <label>Capital</label>
+         <input type="text" value="<?= isset($dados['capital'][0]) ? ($dados['capital'][0]) : '' ?>" disabled>
+      </div>
 
-<div>
-   <label>Sub-região: </label>
-   <input type="text" value="<?= isset($dados['subregion']) ? $dados['subregion'] : '' ?>" disabled>
-</div>
+      <div>
+         <label>Região</label>
+         <input type="text" value="<?= isset($dados['region']) ? ($dados['region']) : '' ?>" disabled>
+      </div>
 
-<div>
-   <label>Idioma: </label>
-   <input type="text" value="<?= isset($dados['languages']['por']) ? $dados['languages']['por'] : '' ?>" disabled>
-</div>
+      <div>
+         <label>Sub-região</label>
+         <input type="text" value="<?= isset($dados['subregion']) ? ($dados['subregion']) : '' ?>" disabled>
+      </div>
 
-<div>
-   <label>Mapa </label><br>
-   <?= isset($dados['maps']['googleMaps']) ? '<a href="'.$dados['maps']['googleMaps'].'" target="_blank">ver no google Maps</a>':'' ?> 
-</div>
+      <div>
+         <label>Idioma</label>
+       <input type="text" value="<?= isset($dados['languages']) ? array_values($dados['languages'])[0] : '' ?>" disabled>
 
-<div>
-<label >Bandeira </label><br>
-<?= isset($dados['flags']['svg']) ? '<img src="'. $dados['flags']['svg']. '" alt ="bandeira" width="150">' : '' ?> 
+      </div>
 
-
-
-
-
-
-</div>
-
-
-
-
-
-
+      <div>
+         <label>Bandeira</label><br>
+         <?= isset($dados['flags']['svg']) ? '<img src="'.($dados['flags']['svg']).'" alt="bandeira" width="150">' : '' ?>
+      </div>
+   </div>
 </body>
-
 </html>
-
-
-
-
-
-
-
-        
-
-
-
-
-
-
-
-
-
-
-        
-
- 
-
-
-
-
-
-
-
-
-
-
-
