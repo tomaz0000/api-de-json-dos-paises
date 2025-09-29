@@ -80,6 +80,7 @@ if ($pais == "") {
       <div>
          <label>Idioma</label>
        <input type="text" value="<?= isset($dados['languages']) ? array_values($dados['languages'])[0] : '' ?>" disabled>
+<input type="text" value="<?= isset($dados['languages']) && count($dados['languages']) > 1 ? array_values($dados ['languages'])[1] : '' ?>" disabled>
 
       </div>
 
